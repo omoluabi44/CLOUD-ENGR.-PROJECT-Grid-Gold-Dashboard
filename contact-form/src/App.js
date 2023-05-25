@@ -1,97 +1,103 @@
-import FormInput from "./FormInput";
-import './App.css';
-import { useState } from "react";
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import './App.css';
 
-const App = () => {
-  const [values, setValues] = useState({
-    Fullname: "",
-    Email: "",
-    Nationality: "",
-    MaritalStatus: "",
-    Occupation: "",
-    Age: "",
-  });
 
-  const input = [
-    {
-      id: 1,
-      name: "Fullname",
-      type: "text",
-      placeholder: "Fullname",
-      label: "Fullname",
-    },
-    {
-      id: 2,
-      name: "Email",
-      type: "email",
-      placeholder: "Your Email",
-      label: "Email",
-    },
-    {
-      id: 3,
-      name: "Nationality",
-      type: "text",
-      placeholder: "Nationality",
-      label: "Nationality",
-    },
-    {
-      id: 4,
-      name: "MaritalStatus",
-      type: "text",
-      placeholder: "Marital Status",
-      label: "Marital Status",
-    },
-    {
-      id: 5,
-      name: "Occupation",
-      type: "text",
-      placeholder: "Occupation",
-      label: "Occupation",
-    },
-    {
-      id: 6,
-      name: "Age",
-      type: "number",
-      placeholder: "Age",
-      label: "Age",
-    },
-  ];
+const Dashboard = () => {
+  const [userCount, setUserCount] = useState(0);
+  const [userList, setUserList] = useState([]);
+  const [nationalityCounts, setNationalityCounts] = useState({});
+  const [totalUserCount, setTotalUserCount] = useState(0);
+  const [users, setUsers] = useState([]);
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    const { Fullname, Email, Nationality, MaritalStatus, Occupation, Age } = values;
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await axios.get('https://l87ed2plj2.execute-api.us-east-2.amazonaws.com/default/Dashboard');
+        const data = response.data.body;
+        const parsedData = JSON.parse(data);
 
-    await axios.post(
-      'https://jpxzi5gsq4.execute-api.us-east-2.amazonaws.com/default/new',
-      {
-        Fullname,
-        Email,
-        Nationality,
-        MaritalStatus,
-        Occupation,
-        Age,
+        const { users, userCount, nationalityCounts, userList, totalUserCount } = parsedData;
+
+        setUserCount(userCount);
+        setUserList(userList);
+        setNationalityCounts(nationalityCounts);
+        setTotalUserCount(totalUserCount);
+        setUsers(users);
+      } catch (error) {
+        console.error('Error fetching user data:', error);
       }
-    );
-  };
+    };
 
-  const onChange = (event) => {
-    setValues({ ...values, [event.target.name]: event.target.value });
-  };
-
-  console.log(values);
+    fetchUserData();
+  }, []);
 
   return (
-    <div className="app">
-      <form onSubmit={handleSubmit}>
-        <h1>REGISTER</h1>
-        {input.map((input) => (
-          <FormInput key={input.id} {...input} value={values[input.name]} onChange={onChange} />
-        ))}
-        <button>Submit</button>
-      </form>
+    <div className="container">
+      <h1>Dashboard</h1>
+      <div className="dashboard">
+        <h2>Cognito User Pool</h2>
+        <h3>User Count: {totalUserCount}</h3>
+        {users && users.length > 0 ? (
+          <table>
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>User Create Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((user, index) => (
+                <tr key={index}>
+                  <td>{user.Email}</td>
+                  <td>{user.UserCreateDate}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p>No user data available.</p>
+        )}
+
+        <h2>DynamoDB Table</h2>
+        <h3>User Count: {userCount}</h3>
+        <h3>Nationality Count:</h3>
+        {nationalityCounts && Object.keys(nationalityCounts).length > 0 ? (
+          <ul>
+            {Object.entries(nationalityCounts).map(([nationality, count]) => (
+              <li key={nationality}>
+                {nationality}: {count}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>No nationality data available.</p>
+        )}
+        {userList && userList.length > 0 ? (
+          <table>
+            <thead>
+              <tr>
+                <th>Fullname</th>
+                <th>Email</th>
+                <th>Age</th>
+              </tr>
+            </thead>
+            <tbody>
+              {userList.map((user, index) => (
+                <tr key={index}>
+                  <td>{user.Fullname}</td>
+                  <td>{user.Email}</td>
+                  <td>{user.Age}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p>No user data available.</p>
+        )}
+      </div>
     </div>
   );
 };
 
-export default App;
+export default Dashboard;
