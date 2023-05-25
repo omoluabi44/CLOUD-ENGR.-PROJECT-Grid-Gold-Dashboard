@@ -13,7 +13,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await axios.get('https://l87ed2plj2.execute-api.us-east-2.amazonaws.com/default/Dashboard');
+        const response = await axios.get(' https://2i9pt7222a.execute-api.us-east-2.amazonaws.com/default/ServerlessApplication-Dashboard');
         const data = response.data.body;
         const parsedData = JSON.parse(data);
 
